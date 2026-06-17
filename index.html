@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>⚔ VONGOLA WAR ANALYTICS ⚔</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Rajdhani:wght@400;600;700&display=swap');
+
+  :root {
+    --gold: #c9a227;
+    --gold-light: #f0c94d;
+    --gold-dark: #8a6c10;
+    --black: #0a0a0a;
+    --dark: #111111;
+    --dark2: #1a1a1a;
+    --dark3: #222222;
+    --text: #e8e0cc;
+    --red: #e63946;
+    --pink: #ff69b4;
+    --green: #39ff14;
+    --yellow: #ffe600;
+    --cyan: #00e5ff;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--black);
+    color: var(--text);
+    font-family: 'Rajdhani', sans-serif;
+    min-height: 100vh;
+    background-image: 
+      radial-gradient(ellipse at top, #1a1200 0%, transparent 60%),
+      radial-gradient(ellipse at bottom, #0d0900 0%, transparent 60%);
+  }
+
+  /* HEADER */
+  .header {
+    text-align: center;
+    padding: 32px 20px 20px;
+    border-bottom: 1px solid var(--gold-dark);
+    position: relative;
+  }
+  .header::before, .header::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 50%;
+    transform: translateX(-50%);
+    height: 2px;
+    width: 60%;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  }
+  .header h1 {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(1.4rem, 4vw, 2.4rem);
+    letter-spacing: 0.15em;
+    color: var(--gold-light);
+    text-shadow: 0 0 30px rgba(201,162,39,0.5), 0 2px 4px #000;
+  }
+  .header h1 span { color: var(--gold); }
+
+  /* CONTROLS */
+  .controls {
+    display: flex;
+    gap: 16px;
+    padding: 20px 24px;
+    flex-wrap: wrap;
+    align-items: center;
+    background: var(--dark2);
+    border-bottom: 1px solid #2a2200;
+  }
+  .control-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .control-label {
+    font-family: 'Cinzel', serif;
+    font-size: 0.85rem;
+    color: var(--gold);
+    letter-spacing: 0.08em;
+    font-weight: 700;
+    min-width: 52px;
+  }
+  select {
+    background: var(--dark3);
+    color: var(--text);
+    border: 1px solid var(--gold-dark);
+    padding: 8px 14px;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 2px;
+    cursor: pointer;
+    min-width: 180px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  select:focus { border-color: var(--gold); }
+
+  /* MAIN */
+  .main { padding: 24px; max-width: 1400px; margin: 0 auto; }
+
+  /* PLAYER STATS SECTION */
+  .section-title {
+    font-family: 'Cinzel', serif;
+    font-size: 1rem;
+    color: var(--gold);
+    letter-spacing: 0.12em;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, var(--gold-dark), transparent);
+  }
+
+  .player-card {
+    background: var(--dark2);
+    border: 1px solid var(--gold-dark);
+    border-top: 2px solid var(--gold);
+    margin-bottom: 20px;
+    overflow: hidden;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  thead th {
+    background: var(--gold-dark);
+    color: var(--gold-light);
+    font-family: 'Cinzel', serif;
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    padding: 10px 12px;
+    text-align: center;
+    border: 1px solid #5a4010;
+  }
+  tbody td {
+    padding: 10px 12px;
+    text-align: center;
+    font-size: 0.95rem;
+    font-weight: 600;
+    border: 1px solid #2a2200;
+    color: var(--text);
+  }
+  tbody tr:hover { background: #1f1800; }
+  .class-cell {
+    color: var(--gold-light);
+    font-weight: 700;
+  }
+
+  /* KDA */
+  .kda-badge {
+    display: inline-block;
+    background: var(--gold-dark);
+    color: var(--gold-light);
+    font-family: 'Cinzel', serif;
+    font-size: 0.7rem;
+    padding: 2px 8px;
+    letter-spacing: 0.1em;
+    border: 1px solid var(--gold);
+    margin: 0 6px;
+  }
+  .kda-value {
+    color: var(--gold-light);
+    font-size: 1.05rem;
+    font-weight: 700;
+  }
+
+  .match-header-row th { background: #1a2a3a; color: var(--cyan); }
+
+  /* MVP BOARD */
+  .mvp-section { margin-top: 32px; }
+  .mvp-title {
+    font-family: 'Cinzel', serif;
+    font-size: 1.3rem;
+    color: var(--gold-light);
+    text-align: center;
+    margin-bottom: 24px;
+    letter-spacing: 0.15em;
+    text-shadow: 0 0 20px rgba(201,162,39,0.4);
+  }
+  .mvp-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+  }
+  .mvp-card {
+    background: var(--dark2);
+    border: 1px solid #2a2200;
+    overflow: hidden;
+  }
+  .mvp-card-title {
+    font-family: 'Cinzel', serif;
+    font-size: 0.9rem;
+    letter-spacing: 0.12em;
+    padding: 10px 14px;
+    text-align: center;
+    font-weight: 900;
+    border-bottom: 1px solid #333;
+  }
+  .mvp-kill .mvp-card-title   { background: #c0002a; color: #fff; }
+  .mvp-heal .mvp-card-title   { background: #9b0075; color: #fff; }
+  .mvp-tower .mvp-card-title  { background: #007a00; color: #fff; }
+  .mvp-tank .mvp-card-title   { background: #8a8a00; color: #fff; }
+  .mvp-dmg .mvp-card-title    { background: #7a2a00; color: #fff; }
+  .mvp-assist .mvp-card-title { background: #006880; color: #fff; }
+
+  .mvp-rows { padding: 12px 14px; }
+  .mvp-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+    border-bottom: 1px solid #2a2200;
+    font-size: 0.92rem;
+    font-weight: 600;
+  }
+  .mvp-row:last-child { border-bottom: none; }
+  .mvp-row .rank {
+    color: var(--gold-dark);
+    font-size: 0.75rem;
+    margin-right: 6px;
+  }
+  .mvp-row .val { color: var(--gold-light); font-weight: 700; }
+
+  /* EMPTY STATE */
+  .empty-state {
+    text-align: center;
+    padding: 40px;
+    color: #555;
+    font-size: 1rem;
+  }
+
+  /* DIVIDER */
+  .gold-divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold-dark), transparent);
+    margin: 24px 0;
+  }
+
+  /* STATS BAR */
+  .stats-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .stat-chip {
+    background: var(--dark3);
+    border: 1px solid #2a2200;
+    padding: 6px 14px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .stat-chip .lbl { color: #888; font-size: 0.75rem; }
+  .stat-chip .val { color: var(--gold-light); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1><span>⚔</span> VONGOLA WAR ANALYTICS <span>⚔</span></h1>
+</div>
+
+<div class="controls">
+  <div class="control-group">
+    <span class="control-label">WAR</span>
+    <select id="warSelect" onchange="onWarChange()">
+      <option value="ALL">— ALL WARS —</option>
+    </select>
+  </div>
+  <div class="control-group">
+    <span class="control-label">PLAYER</span>
+    <select id="playerSelect" onchange="renderPlayerStats()">
+      <option value="ALL">— ALL PLAYERS —</option>
+    </select>
+  </div>
+  <div class="control-group">
+    <span class="control-label">CLASS</span>
+    <select id="classSelect" onchange="onClassChange()">
+      <option value="ALL">— ALL CLASSES —</option>
+    </select>
+  </div>
+</div>
+
+<div class="main">
+  <div id="playerSection"></div>
+  <div class="gold-divider"></div>
+  <div class="mvp-section">
+    <div class="mvp-title">🏆 MVP BOARD</div>
+    <div class="mvp-grid" id="mvpGrid"></div>
+  </div>
+</div>
+
+<script>
+const RAW = [{"War": "Revolt", "Player": "朱dy", "Class": "Numina", "Kill": 59, "Assist": 211, "Heal": 0, "Tank": 489, "Tower": 673, "Revive": 0, "Morale": 0, "Dmg": 1276, "Death": 8}, {"War": "Revolt", "Player": "Novice", "Class": "Celestune", "Kill": 44, "Assist": 140, "Heal": 0, "Tank": 220, "Tower": 505, "Revive": 0, "Morale": 0, "Dmg": 1333, "Death": 12}, {"War": "Revolt", "Player": "Oreki", "Class": "Nightwalker", "Kill": 35, "Assist": 112, "Heal": 0, "Tank": 299, "Tower": 257, "Revive": 0, "Morale": 780, "Dmg": 566, "Death": 8}, {"War": "Revolt", "Player": "Sunny", "Class": "Bloodstorm", "Kill": 32, "Assist": 133, "Heal": 16, "Tank": 548, "Tower": 507, "Revive": 0, "Morale": 0, "Dmg": 899, "Death": 16}, {"War": "Revolt", "Player": "Zacheroo", "Class": "Numina", "Kill": 30, "Assist": 186, "Heal": 0, "Tank": 451, "Tower": 686, "Revive": 0, "Morale": 0, "Dmg": 1342, "Death": 8}, {"War": "Revolt", "Player": "เป็นได้แค่อาหวัง", "Class": "Ironclad", "Kill": 27, "Assist": 191, "Heal": 14, "Tank": 948, "Tower": 507, "Revive": 0, "Morale": 0, "Dmg": 1198, "Death": 15}, {"War": "Revolt", "Player": "朱Ninja", "Class": "Numina", "Kill": 25, "Assist": 207, "Heal": 0, "Tank": 415, "Tower": 1114, "Revive": 0, "Morale": 0, "Dmg": 767, "Death": 11}, {"War": "Revolt", "Player": "reel", "Class": "Numina", "Kill": 25, "Assist": 132, "Heal": 0, "Tank": 447, "Tower": 450, "Revive": 0, "Morale": 0, "Dmg": 1033, "Death": 17}, {"War": "Revolt", "Player": "Kal`El", "Class": "Ironclad", "Kill": 24, "Assist": 85, "Heal": 0, "Tank": 574, "Tower": 774, "Revive": 0, "Morale": 0, "Dmg": 946, "Death": 7}, {"War": "Revolt", "Player": "Juzo", "Class": "Numina", "Kill": 23, "Assist": 181, "Heal": 0, "Tank": 326, "Tower": 1062, "Revive": 0, "Morale": 0, "Dmg": 627, "Death": 12}, {"War": "Revolt", "Player": "Sp0nky", "Class": "Celestune", "Kill": 21, "Assist": 120, "Heal": 0, "Tank": 390, "Tower": 261, "Revive": 0, "Morale": 0, "Dmg": 625, "Death": 11}, {"War": "Revolt", "Player": "Beru死", "Class": "Nightwalker", "Kill": 21, "Assist": 118, "Heal": 0, "Tank": 298, "Tower": 130, "Revive": 0, "Morale": 520, "Dmg": 579, "Death": 16}, {"War": "Revolt", "Player": "Sembae", "Class": "Bloodstorm", "Kill": 19, "Assist": 92, "Heal": 14, "Tank": 935, "Tower": 605, "Revive": 0, "Morale": 520, "Dmg": 817, "Death": 13}, {"War": "Revolt", "Player": "Gaiping", "Class": "Numina", "Kill": 19, "Assist": 125, "Heal": 0, "Tank": 473, "Tower": 2068, "Revive": 0, "Morale": 0, "Dmg": 733, "Death": 7}, {"War": "Revolt", "Player": "BigDaddy", "Class": "Numina", "Kill": 18, "Assist": 158, "Heal": 0, "Tank": 406, "Tower": 1022, "Revive": 0, "Morale": 0, "Dmg": 630, "Death": 15}, {"War": "Revolt", "Player": "ปู่ไปมาแล้ว", "Class": "Nightwalker", "Kill": 18, "Assist": 57, "Heal": 0, "Tank": 349, "Tower": 220, "Revive": 0, "Morale": 0, "Dmg": 538, "Death": 15}, {"War": "Revolt", "Player": "Nomercy", "Class": "Bloodstorm", "Kill": 17, "Assist": 96, "Heal": 15, "Tank": 779, "Tower": 961, "Revive": 0, "Morale": 0, "Dmg": 495, "Death": 8}, {"War": "Revolt", "Player": "QiuSongChai", "Class": "Numina", "Kill": 16, "Assist": 92, "Heal": 0, "Tank": 366, "Tower": 670, "Revive": 0, "Morale": 0, "Dmg": 663, "Death": 11}, {"War": "Revolt", "Player": "唱歌很好听", "Class": "Nightwalker", "Kill": 16, "Assist": 54, "Heal": 0, "Tank": 247, "Tower": 309, "Revive": 0, "Morale": 0, "Dmg": 407, "Death": 6}, {"War": "Revolt", "Player": "Purra", "Class": "Bloodstorm", "Kill": 13, "Assist": 117, "Heal": 12, "Tank": 734, "Tower": 1122, "Revive": 0, "Morale": 0, "Dmg": 564, "Death": 9}, {"War": "Revolt", "Player": "Barbarbie", "Class": "Dragonsvelte", "Kill": 12, "Assist": 88, "Heal": 0, "Tank": 265, "Tower": 1143, "Revive": 0, "Morale": 0, "Dmg": 446, "Death": 7}, {"War": "Revolt", "Player": "FrancsJessca", "Class": "Numina", "Kill": 11, "Assist": 123, "Heal": 0, "Tank": 417, "Tower": 1556, "Revive": 0, "Morale": 0, "Dmg": 777, "Death": 10}, {"War": "Revolt", "Player": "Munchy", "Class": "Nightwalker", "Kill": 10, "Assist": 50, "Heal": 0, "Tank": 250, "Tower": 1406, "Revive": 0, "Morale": 0, "Dmg": 351, "Death": 5}, {"War": "Revolt", "Player": "Makii", "Class": "Celestune", "Kill": 10, "Assist": 112, "Heal": 28, "Tank": 332, "Tower": 1246, "Revive": 0, "Morale": 0, "Dmg": 449, "Death": 10}, {"War": "Revolt", "Player": "Quinchana", "Class": "Numina", "Kill": 9, "Assist": 101, "Heal": 0, "Tank": 252, "Tower": 1566, "Revive": 0, "Morale": 0, "Dmg": 475, "Death": 8}, {"War": "Revolt", "Player": "Moon X", "Class": "Numina", "Kill": 9, "Assist": 97, "Heal": 0, "Tank": 426, "Tower": 2951, "Revive": 0, "Morale": 0, "Dmg": 359, "Death": 5}, {"War": "Revolt", "Player": "Sidneyz", "Class": "Celestune", "Kill": 8, "Assist": 60, "Heal": 17, "Tank": 294, "Tower": 2072, "Revive": 0, "Morale": 0, "Dmg": 189, "Death": 10}, {"War": "Revolt", "Player": "Freonix", "Class": "Nightwalker", "Kill": 8, "Assist": 24, "Heal": 0, "Tank": 117, "Tower": 125, "Revive": 0, "Morale": 7020, "Dmg": 154, "Death": 5}, {"War": "Revolt", "Player": "BATTOSAIZ", "Class": "Numina", "Kill": 7, "Assist": 63, "Heal": 16, "Tank": 360, "Tower": 2036, "Revive": 0, "Morale": 0, "Dmg": 213, "Death": 13}, {"War": "Revolt", "Player": "อั๊ป่าย", "Class": "Numina", "Kill": 7, "Assist": 56, "Heal": 0, "Tank": 304, "Tower": 2139, "Revive": 0, "Morale": 0, "Dmg": 207, "Death": 9}, {"War": "Revolt", "Player": "Kaizexex", "Class": "Numina", "Kill": 6, "Assist": 62, "Heal": 0, "Tank": 299, "Tower": 3042, "Revive": 0, "Morale": 0, "Dmg": 248, "Death": 4}, {"War": "Revolt", "Player": "Y a m a t a ē", "Class": "Numina", "Kill": 6, "Assist": 65, "Heal": 0, "Tank": 342, "Tower": 2412, "Revive": 0, "Morale": 0, "Dmg": 209, "Death": 6}, {"War": "Revolt", "Player": "Salmonz", "Class": "Celestune", "Kill": 6, "Assist": 39, "Heal": 0, "Tank": 240, "Tower": 5403, "Revive": 0, "Morale": 0, "Dmg": 248, "Death": 12}, {"War": "Revolt", "Player": "Y u m a贤", "Class": "Celestune", "Kill": 4, "Assist": 64, "Heal": 0, "Tank": 312, "Tower": 3549, "Revive": 0, "Morale": 0, "Dmg": 596, "Death": 9}, {"War": "Revolt", "Player": "MeoMun", "Class": "Dragonsvelte", "Kill": 4, "Assist": 144, "Heal": 23, "Tank": 1145, "Tower": 109, "Revive": 0, "Morale": 0, "Dmg": 204, "Death": 13}, {"War": "Revolt", "Player": "SiMongDoi", "Class": "Ironclad", "Kill": 1, "Assist": 131, "Heal": 16, "Tank": 1336, "Tower": 118, "Revive": 0, "Morale": 0, "Dmg": 126, "Death": 6}, {"War": "Revolt", "Player": "Anne 恩汐", "Class": "Sylph", "Kill": 1, "Assist": 322, "Heal": 981, "Tank": 946, "Tower": 69, "Revive": 12, "Morale": 0, "Dmg": 34, "Death": 4}, {"War": "Revolt", "Player": "อิ๊ย่าาาาห์", "Class": "Sylph", "Kill": 1, "Assist": 186, "Heal": 732, "Tank": 504, "Tower": 161, "Revive": 9, "Morale": 0, "Dmg": 3, "Death": 5}, {"War": "Revolt", "Player": "DiorRukjing007", "Class": "Sylph", "Kill": 1, "Assist": 218, "Heal": 725, "Tank": 844, "Tower": 27, "Revive": 10, "Morale": 0, "Dmg": 5, "Death": 6}, {"War": "Revolt", "Player": "C A M E L", "Class": "Ironclad", "Kill": 1, "Assist": 105, "Heal": 15, "Tank": 1588, "Tower": 138, "Revive": 0, "Morale": 0, "Dmg": 203, "Death": 6}, {"War": "Revolt", "Player": "sissterr", "Class": "Sylph", "Kill": 0, "Assist": 308, "Heal": 1037, "Tank": 1128, "Tower": 63, "Revive": 6, "Morale": 0, "Dmg": 49, "Death": 5}, {"War": "Revolt", "Player": "UR`", "Class": "Sylph", "Kill": 0, "Assist": 349, "Heal": 923, "Tank": 1036, "Tower": 31, "Revive": 13, "Morale": 0, "Dmg": 16, "Death": 6}, {"War": "Revolt", "Player": "IceThinkSo", "Class": "Sylph", "Kill": 0, "Assist": 296, "Heal": 838, "Tank": 589, "Tower": 0, "Revive": 11, "Morale": 0, "Dmg": 4, "Death": 5}, {"War": "Revolt", "Player": "SRimoi", "Class": "Sylph", "Kill": 0, "Assist": 160, "Heal": 585, "Tank": 675, "Tower": 166, "Revive": 7, "Morale": 0, "Dmg": 3, "Death": 7}, {"War": "Revolt", "Player": "Thổ Cẩm", "Class": "Ironclad", "Kill": 0, "Assist": 195, "Heal": 11, "Tank": 1677, "Tower": 118, "Revive": 0, "Morale": 0, "Dmg": 140, "Death": 9}, {"War": "Revolt", "Player": "Li Meihua", "Class": "Sylph", "Kill": 0, "Assist": 165, "Heal": 819, "Tank": 892, "Tower": 2, "Revive": 11, "Morale": 0, "Dmg": 9, "Death": 6}, {"War": "Revolt", "Player": "Mariiiii", "Class": "Sylph", "Kill": 0, "Assist": 239, "Heal": 646, "Tank": 995, "Tower": 12, "Revive": 11, "Morale": 0, "Dmg": 4, "Death": 8}, {"War": "Revolt", "Player": "Lontė", "Class": "Sylph", "Kill": 0, "Assist": 225, "Heal": 464, "Tank": 345, "Tower": 112, "Revive": 8, "Morale": 0, "Dmg": 2, "Death": 7}, {"War": "Revolt", "Player": "龍`XIAOYAO", "Class": "Ironclad", "Kill": 0, "Assist": 111, "Heal": 5, "Tank": 985, "Tower": 279, "Revive": 0, "Morale": 0, "Dmg": 173, "Death": 6}, {"War": "Revolt", "Player": "หม่อมเหยิน", "Class": "Sylph", "Kill": 0, "Assist": 329, "Heal": 1223, "Tank": 977, "Tower": 11, "Revive": 12, "Morale": 0, "Dmg": 5, "Death": 6}, {"War": "Revolt", "Player": "来Ujin", "Class": "Sylph", "Kill": 0, "Assist": 317, "Heal": 651, "Tank": 663, "Tower": 6, "Revive": 10, "Morale": 0, "Dmg": 7, "Death": 9}, {"War": "Revolt", "Player": "J1ng", "Class": "Ironclad", "Kill": 0, "Assist": 60, "Heal": 17, "Tank": 543, "Tower": 461, "Revive": 0, "Morale": 0, "Dmg": 27, "Death": 5}, {"War": "Revolt", "Player": "雪蘭 Sylvie", "Class": "Sylph", "Kill": 0, "Assist": 119, "Heal": 453, "Tank": 598, "Tower": 5, "Revive": 8, "Morale": 0, "Dmg": 4332, "Death": 5}, {"War": "Revolt", "Player": "F ē r ā y", "Class": "Sylph", "Kill": 0, "Assist": 151, "Heal": 689, "Tank": 925, "Tower": 7, "Revive": 8, "Morale": 0, "Dmg": 14, "Death": 7}, {"War": "Revolt", "Player": "MíMí", "Class": "Sylph", "Kill": 0, "Assist": 112, "Heal": 544, "Tank": 622, "Tower": 14, "Revive": 9, "Morale": 0, "Dmg": 2, "Death": 6}, {"War": "Revolt", "Player": "UnDoZ", "Class": "Sylph", "Kill": 0, "Assist": 164, "Heal": 637, "Tank": 796, "Tower": 25, "Revive": 10, "Morale": 0, "Dmg": 5, "Death": 8}, {"War": "Revolt", "Player": "Mermeow", "Class": "Sylph", "Kill": 0, "Assist": 138, "Heal": 774, "Tank": 670, "Tower": 56, "Revive": 10, "Morale": 0, "Dmg": 16, "Death": 5}, {"War": "Revolt", "Player": "A3 x BGIKYqt", "Class": "Ironclad", "Kill": 0, "Assist": 201, "Heal": 33, "Tank": 1949, "Tower": 65, "Revive": 0, "Morale": 0, "Dmg": 128, "Death": 5}, {"War": "Revolt", "Player": "Didii", "Class": "Sylph", "Kill": 0, "Assist": 317, "Heal": 995, "Tank": 1002, "Tower": 51, "Revive": 8, "Morale": 0, "Dmg": 13, "Death": 5}, {"War": "Revolt", "Player": "I3onnie", "Class": "Sylph", "Kill": 0, "Assist": 355, "Heal": 685, "Tank": 815, "Tower": 29, "Revive": 8, "Morale": 0, "Dmg": 5, "Death": 6}, {"War": "Catnap", "Player": "朱dy", "Class": "Numina", "Kill": 26, "Assist": 148, "Heal": 0, "Tank": 310, "Tower": 239, "Revive": 0, "Morale": 0, "Dmg": 982, "Death": 11}, {"War": "Catnap", "Player": "Novice", "Class": "Celestune", "Kill": 31, "Assist": 107, "Heal": 0, "Tank": 192, "Tower": 180, "Revive": 0, "Morale": 0, "Dmg": 1124, "Death": 8}, {"War": "Catnap", "Player": "Oreki", "Class": "Nightwalker", "Kill": 10, "Assist": 58, "Heal": 1, "Tank": 314, "Tower": 0, "Revive": 0, "Morale": 0, "Dmg": 217, "Death": 11}, {"War": "Catnap", "Player": "Sunny", "Class": "Bloodstorm", "Kill": 24, "Assist": 101, "Heal": 14, "Tank": 429, "Tower": 61, "Revive": 0, "Morale": 0, "Dmg": 866, "Death": 15}, {"War": "Catnap", "Player": "Zacheroo", "Class": "Numina", "Kill": 18, "Assist": 126, "Heal": 0, "Tank": 319, "Tower": 72, "Revive": 0, "Morale": 0, "Dmg": 1090, "Death": 15}, {"War": "Catnap", "Player": "เป็นได้แค่อาหวัง", "Class": "Ironclad", "Kill": 22, "Assist": 124, "Heal": 17, "Tank": 847, "Tower": 101, "Revive": 0, "Morale": 0, "Dmg": 819, "Death": 17}, {"War": "Catnap", "Player": "朱Ninja", "Class": "Numina", "Kill": 25, "Assist": 151, "Heal": 1, "Tank": 576, "Tower": 191, "Revive": 0, "Morale": 0, "Dmg": 616, "Death": 13}, {"War": "Catnap", "Player": "reel", "Class": "Numina", "Kill": 18, "Assist": 115, "Heal": 0, "Tank": 390, "Tower": 621, "Revive": 0, "Morale": 0, "Dmg": 853, "Death": 14}, {"War": "Catnap", "Player": "Kal`El", "Class": "Ironclad", "Kill": 21, "Assist": 111, "Heal": 0, "Tank": 731, "Tower": 96, "Revive": 0, "Morale": 0, "Dmg": 790, "Death": 10}, {"War": "Catnap", "Player": "Juzo", "Class": "Numina", "Kill": 23, "Assist": 138, "Heal": 2, "Tank": 408, "Tower": 76, "Revive": 0, "Morale": 0, "Dmg": 548, "Death": 18}, {"War": "Catnap", "Player": "Sp0nky", "Class": "Celestune", "Kill": 10, "Assist": 83, "Heal": 0, "Tank": 343, "Tower": 61, "Revive": 0, "Morale": 0, "Dmg": 560, "Death": 10}, {"War": "Catnap", "Player": "Beru死", "Class": "Nightwalker", "Kill": 19, "Assist": 51, "Heal": 0, "Tank": 220, "Tower": 2, "Revive": 0, "Morale": 0, "Dmg": 435, "Death": 15}, {"War": "Catnap", "Player": "Sembae", "Class": "Bloodstorm", "Kill": 10, "Assist": 80, "Heal": 13, "Tank": 654, "Tower": 476, "Revive": 0, "Morale": 0, "Dmg": 768, "Death": 8}, {"War": "Catnap", "Player": "Gaiping", "Class": "Numina", "Kill": 14, "Assist": 118, "Heal": 0, "Tank": 577, "Tower": 679, "Revive": 0, "Morale": 0, "Dmg": 580, "Death": 9}, {"War": "Catnap", "Player": "BigDaddy", "Class": "Numina", "Kill": 12, "Assist": 160, "Heal": 0, "Tank": 466, "Tower": 196, "Revive": 0, "Morale": 0, "Dmg": 816, "Death": 12}, {"War": "Catnap", "Player": "ปู่ไปมาแล้ว", "Class": "Nightwalker", "Kill": 18, "Assist": 69, "Heal": 0, "Tank": 335, "Tower": 184, "Revive": 0, "Morale": 0, "Dmg": 464, "Death": 15}, {"War": "Catnap", "Player": "Nomercy", "Class": "Bloodstorm", "Kill": 5, "Assist": 63, "Heal": 10, "Tank": 572, "Tower": 86, "Revive": 0, "Morale": 0, "Dmg": 399, "Death": 13}, {"War": "Catnap", "Player": "QiuSongChai", "Class": "Numina", "Kill": 12, "Assist": 103, "Heal": 1, "Tank": 349, "Tower": 427, "Revive": 0, "Morale": 0, "Dmg": 481, "Death": 14}, {"War": "Catnap", "Player": "唱歌很好听", "Class": "Nightwalker", "Kill": 12, "Assist": 54, "Heal": 1, "Tank": 324, "Tower": 119, "Revive": 0, "Morale": 0, "Dmg": 399, "Death": 9}, {"War": "Catnap", "Player": "Barbarbie", "Class": "Dragonsvelte", "Kill": 16, "Assist": 115, "Heal": 0, "Tank": 236, "Tower": 463, "Revive": 0, "Morale": 0, "Dmg": 757, "Death": 8}, {"War": "Catnap", "Player": "Moon X", "Class": "Numina", "Kill": 15, "Assist": 117, "Heal": 11, "Tank": 565, "Tower": 305, "Revive": 0, "Morale": 0, "Dmg": 511, "Death": 12}, {"War": "Catnap", "Player": "Freonix", "Class": "Nightwalker", "Kill": 29, "Assist": 76, "Heal": 0, "Tank": 290, "Tower": 22, "Revive": 0, "Morale": 0, "Dmg": 629, "Death": 13}, {"War": "Catnap", "Player": "อั๊ป่าย", "Class": "Numina", "Kill": 2, "Assist": 36, "Heal": 2, "Tank": 231, "Tower": 0, "Revive": 0, "Morale": 0, "Dmg": 7, "Death": 7}, {"War": "Catnap", "Player": "Salmonz", "Class": "Celestune", "Kill": 6, "Assist": 22, "Heal": 0, "Tank": 178, "Tower": 4429, "Revive": 0, "Morale": 0, "Dmg": 105, "Death": 6}, {"War": "Catnap", "Player": "Y u m a贤", "Class": "Celestune", "Kill": 7, "Assist": 17, "Heal": 0, "Tank": 218, "Tower": 5087, "Revive": 0, "Morale": 0, "Dmg": 122, "Death": 4}, {"War": "Catnap", "Player": "MeoMun", "Class": "Dragonsvelte", "Kill": 1, "Assist": 118, "Heal": 29, "Tank": 1104, "Tower": 218, "Revive": 0, "Morale": 0, "Dmg": 177, "Death": 8}, {"War": "Catnap", "Player": "SiMongDoi", "Class": "Ironclad", "Kill": 0, "Assist": 98, "Heal": 13, "Tank": 1166, "Tower": 52, "Revive": 0, "Morale": 0, "Dmg": 114, "Death": 9}, {"War": "Catnap", "Player": "Anne 恩汐", "Class": "Sylph", "Kill": 0, "Assist": 215, "Heal": 1110, "Tank": 994, "Tower": 3, "Revive": 7, "Morale": 0, "Dmg": 29, "Death": 9}, {"War": "Catnap", "Player": "อิ๊ย่าาาาห์", "Class": "Sylph", "Kill": 0, "Assist": 246, "Heal": 1033, "Tank": 1206, "Tower": 21, "Revive": 11, "Morale": 0, "Dmg": 8, "Death": 10}, {"War": "Catnap", "Player": "DiorRukjing007", "Class": "Sylph", "Kill": 0, "Assist": 203, "Heal": 634, "Tank": 786, "Tower": 0, "Revive": 7, "Morale": 0, "Dmg": 5, "Death": 11}, {"War": "Catnap", "Player": "C A M E L", "Class": "Ironclad", "Kill": 9, "Assist": 91, "Heal": 12, "Tank": 879, "Tower": 111, "Revive": 0, "Morale": 0, "Dmg": 278, "Death": 8}, {"War": "Catnap", "Player": "sissterr", "Class": "Sylph", "Kill": 0, "Assist": 222, "Heal": 1025, "Tank": 1242, "Tower": 2, "Revive": 10, "Morale": 0, "Dmg": 19, "Death": 9}, {"War": "Catnap", "Player": "UR`", "Class": "Sylph", "Kill": 1, "Assist": 238, "Heal": 865, "Tank": 1032, "Tower": 19, "Revive": 12, "Morale": 0, "Dmg": 15, "Death": 9}, {"War": "Catnap", "Player": "SRimoi", "Class": "Sylph", "Kill": 0, "Assist": 209, "Heal": 811, "Tank": 826, "Tower": 32, "Revive": 6, "Morale": 0, "Dmg": 10, "Death": 8}, {"War": "Catnap", "Player": "Thổ Cẩm", "Class": "Ironclad", "Kill": 2, "Assist": 201, "Heal": 5, "Tank": 1949, "Tower": 86, "Revive": 0, "Morale": 0, "Dmg": 168, "Death": 10}, {"War": "Catnap", "Player": "Li Meihua", "Class": "Sylph", "Kill": 0, "Assist": 196, "Heal": 778, "Tank": 1068, "Tower": 4, "Revive": 11, "Morale": 0, "Dmg": 4, "Death": 11}, {"War": "Catnap", "Player": "Mariiiii", "Class": "Sylph", "Kill": 0, "Assist": 202, "Heal": 764, "Tank": 1056, "Tower": 0, "Revive": 11, "Morale": 0, "Dmg": 7, "Death": 9}, {"War": "Catnap", "Player": "หม่อมเหยิน", "Class": "Sylph", "Kill": 0, "Assist": 255, "Heal": 1199, "Tank": 1012, "Tower": 8, "Revive": 10, "Morale": 0, "Dmg": 12, "Death": 9}, {"War": "Catnap", "Player": "来Ujin", "Class": "Sylph", "Kill": 0, "Assist": 222, "Heal": 791, "Tank": 956, "Tower": 2, "Revive": 12, "Morale": 0, "Dmg": 11, "Death": 13}, {"War": "Catnap", "Player": "雪蘭 Sylvie", "Class": "Sylph", "Kill": 0, "Assist": 38, "Heal": 300, "Tank": 381, "Tower": 1, "Revive": 5, "Morale": 0, "Dmg": 0, "Death": 6}, {"War": "Catnap", "Player": "F ē r ā y", "Class": "Sylph", "Kill": 0, "Assist": 162, "Heal": 704, "Tank": 994, "Tower": 0, "Revive": 5, "Morale": 0, "Dmg": 10, "Death": 8}, {"War": "Catnap", "Player": "MíMí", "Class": "Sylph", "Kill": 0, "Assist": 37, "Heal": 293, "Tank": 291, "Tower": 7, "Revive": 3, "Morale": 0, "Dmg": 6498, "Death": 4}, {"War": "Catnap", "Player": "UnDoZ", "Class": "Sylph", "Kill": 0, "Assist": 31, "Heal": 280, "Tank": 299, "Tower": 39, "Revive": 5, "Morale": 0, "Dmg": 1, "Death": 4}, {"War": "Catnap", "Player": "Mermeow", "Class": "Sylph", "Kill": 1, "Assist": 44, "Heal": 464, "Tank": 351, "Tower": 55, "Revive": 6, "Morale": 0, "Dmg": 16, "Death": 4}, {"War": "Catnap", "Player": "A3 x BGIKYqt", "Class": "Ironclad", "Kill": 1, "Assist": 136, "Heal": 25, "Tank": 1907, "Tower": 29, "Revive": 0, "Morale": 0, "Dmg": 135, "Death": 7}, {"War": "Catnap", "Player": "Didii", "Class": "Sylph", "Kill": 0, "Assist": 199, "Heal": 778, "Tank": 1060, "Tower": 6, "Revive": 8, "Morale": 0, "Dmg": 17, "Death": 15}, {"War": "Catnap", "Player": "I3onnie", "Class": "Sylph", "Kill": 0, "Assist": 225, "Heal": 590, "Tank": 755, "Tower": 0, "Revive": 6, "Morale": 0, "Dmg": 6, "Death": 5}, {"War": "Catnap", "Player": "Kenzilla 剑", "Class": "Numina", "Kill": 2, "Assist": 26, "Heal": 1, "Tank": 162, "Tower": 2994, "Revive": 0, "Morale": 0, "Dmg": 35, "Death": 5}, {"War": "Catnap", "Player": "ŁUNAx", "Class": "Numina", "Kill": 2, "Assist": 17, "Heal": 1, "Tank": 134, "Tower": 1982, "Revive": 0, "Morale": 0, "Dmg": 41, "Death": 7}, {"War": "Catnap", "Player": "เกลืออชมพู", "Class": "Sylph", "Kill": 0, "Assist": 231, "Heal": 747, "Tank": 1096, "Tower": 11, "Revive": 8, "Morale": 0, "Dmg": 5, "Death": 8}, {"War": "Catnap", "Player": "WonyoungX", "Class": "Sylph", "Kill": 0, "Assist": 158, "Heal": 577, "Tank": 960, "Tower": 0, "Revive": 3, "Morale": 0, "Dmg": 1032, "Death": 10}, {"War": "Catnap", "Player": "冷保", "Class": "Sylph", "Kill": 0, "Assist": 146, "Heal": 536, "Tank": 983, "Tower": 2, "Revive": 10, "Morale": 0, "Dmg": 15, "Death": 12}, {"War": "Catnap", "Player": "IbakaM", "Class": "Ironclad", "Kill": 4, "Assist": 28, "Heal": 41, "Tank": 406, "Tower": 937, "Revive": 0, "Morale": 0, "Dmg": 68, "Death": 5}, {"War": "Catnap", "Player": "Counter", "Class": "Bloodstorm", "Kill": 5, "Assist": 79, "Heal": 14, "Tank": 623, "Tower": 612, "Revive": 0, "Morale": 0, "Dmg": 471, "Death": 15}, {"War": "Catnap", "Player": "BooM", "Class": "Ironclad", "Kill": 5, "Assist": 25, "Heal": 12, "Tank": 359, "Tower": 457, "Revive": 0, "Morale": 0, "Dmg": 76, "Death": 3}, {"War": "Catnap", "Player": "Qinglong", "Class": "Nightwalker", "Kill": 8, "Assist": 81, "Heal": 8, "Tank": 286, "Tower": 230, "Revive": 0, "Morale": 0, "Dmg": 355, "Death": 14}, {"War": "Catnap", "Player": "Soong Jinwoo", "Class": "Celestune", "Kill": 10, "Assist": 79, "Heal": 2, "Tank": 347, "Tower": 318, "Revive": 0, "Morale": 0, "Dmg": 619, "Death": 11}, {"War": "Catnap", "Player": "A3 x 无名", "Class": "Nightwalker", "Kill": 25, "Assist": 90, "Heal": 0, "Tank": 389, "Tower": 17, "Revive": 0, "Morale": 0, "Dmg": 919, "Death": 17}, {"War": "Catnap", "Player": "Mamipoki", "Class": "Numina", "Kill": 13, "Assist": 143, "Heal": 0, "Tank": 444, "Tower": 537, "Revive": 0, "Morale": 0, "Dmg": 1054, "Death": 9}, {"War": "Catnap", "Player": "Chrislo", "Class": "Numina", "Kill": 4, "Assist": 33, "Heal": 0, "Tank": 142, "Tower": 4307, "Revive": 0, "Morale": 0, "Dmg": 74, "Death": 5}];
+
+const wars = [...new Set(RAW.map(r => r.War))];
+const allPlayers = [...new Set(RAW.map(r => r.Player))].sort();
+
+// Populate dropdowns
+const warSel = document.getElementById('warSelect');
+const playerSel = document.getElementById('playerSelect');
+const classSel = document.getElementById('classSelect');
+
+wars.forEach(w => {
+  const o = document.createElement('option'); o.value = w; o.textContent = w; warSel.appendChild(o);
+});
+allPlayers.forEach(p => {
+  const o = document.createElement('option'); o.value = p; o.textContent = p; playerSel.appendChild(o);
+});
+const allClasses = [...new Set(RAW.map(r => r.Class))].sort();
+allClasses.forEach(c => {
+  const o = document.createElement('option'); o.value = c; o.textContent = c; classSel.appendChild(o);
+});
+
+function getFiltered() {
+  const war = warSel.value;
+  const player = playerSel.value;
+  const cls = classSel.value;
+  return RAW.filter(r =>
+    (war === 'ALL' || r.War === war) &&
+    (player === 'ALL' || r.Player === player) &&
+    (cls === 'ALL' || r.Class === cls)
+  );
+}
+
+function onWarChange() {
+  const war = warSel.value;
+  const cls = classSel.value;
+  const players = [...new Set(RAW.filter(r =>
+    (war === 'ALL' || r.War === war) &&
+    (cls === 'ALL' || r.Class === cls)
+  ).map(r => r.Player))].sort();
+
+  const cur = playerSel.value;
+  playerSel.innerHTML = '<option value="ALL">— ALL PLAYERS —</option>';
+  players.forEach(p => {
+    const o = document.createElement('option');
+    o.value = p; o.textContent = p;
+    if (p === cur) o.selected = true;
+    playerSel.appendChild(o);
+  });
+  renderAll();
+}
+
+function onClassChange() {
+  // Reset player dropdown when class changes
+  const cls = classSel.value;
+  const war = warSel.value;
+  const players = [...new Set(RAW.filter(r =>
+    (war === 'ALL' || r.War === war) &&
+    (cls === 'ALL' || r.Class === cls)
+  ).map(r => r.Player))].sort();
+  const cur = playerSel.value;
+  playerSel.innerHTML = '<option value="ALL">— ALL PLAYERS —</option>';
+  players.forEach(p => {
+    const o = document.createElement('option');
+    o.value = p; o.textContent = p;
+    if (p === cur) o.selected = true;
+    playerSel.appendChild(o);
+  });
+  renderAll();
+}
+
+function trueDmg(val) { return val || 0; }
+
+function kda(r) {
+
+    const d = r.Death || 1;
+
+    const kill   = r.Kill || 0;
+    const assist = r.Assist || 0;
+    const tank   = r.Tank || 0;
+    const tower  = r.Tower || 0;
+    const revive = r.Revive || 0;
+    const morale = r.Morale || 0;
+
+    const dmgVal = trueDmg(r.Dmg || 0);
+
+    switch(r.Class) {
+
+        case 'Numina':
+        case 'Celestune':
+            return (((kill + assist * 0.5 + tank * 0.01 + tower * 0.01 + dmgVal * 0.0001) / d)).toFixed(2);
+
+        case 'Bloodstorm':
+        case 'Nightwalker':
+            return (((kill + assist * 0.5 + tank * 0.01 + tower * 0.01 + morale * 0.01 + dmgVal * 0.0001) / d)).toFixed(2);
+
+        case 'Sylph':
+            return (((kill + assist * 0.5 + revive * 5 + tank * 0.01) / d)).toFixed(2);
+
+        case 'Ironclad':
+            return (((kill + assist * 0.5 + tank * 0.02 + tower * 0.01 + dmgVal * 0.0001) / d)).toFixed(2);
+
+        default:
+            return (((kill + assist * 0.5) / d)).toFixed(2);
+    }
+}
+
+function fmt(n) { return (n||0).toLocaleString(); }
+const NO_K_PLAYERS = ['MíMí', 'WonyoungX', '雪蘭 Sylvie'];
+function fmtDmg(n, r) {
+  const val = (n || 0).toLocaleString();
+  if (r && NO_K_PLAYERS.includes(r.Player)) {
+    return val;
+  }
+  return val + 'K';
+}
+function fmtTower(n) { return (n || 0).toLocaleString() + 'K'; }
+
+function renderPlayerStats() { renderAll(); }
+
+function renderAll() {
+  const data = getFiltered();
+  renderPlayer(data);
+  renderMVP(data);
+}
+
+function renderPlayer(data) {
+  const sec = document.getElementById('playerSection');
+  if (!data.length) { sec.innerHTML = '<div class="empty-state">ไม่พบข้อมูล</div>'; return; }
+
+  const player = playerSel.value;
+  const war = warSel.value;
+
+  if (player !== 'ALL') {
+    const rows = data;
+    const n = rows.length;
+    const avg = (field) => rows.reduce((s,r)=>s+(r[field]||0),0) / n;
+    const fmtA = (v) => v % 1 === 0 ? fmt(v) : v.toFixed(1);
+
+    // avg KDA
+    const avgKDA = rows.reduce((s,r) => s + parseFloat(kda(r)), 0) / n;
+
+    let html = `<div class="section-title">⚔ PLAYER PROFILE</div>
+    <div class="player-card">
+      <table>
+        <thead><tr>
+          <th>Class</th><th>Match</th><th>Kill</th><th>Assist</th><th>Heal</th><th>Tank</th><th>Tower</th><th>Revive</th><th>Morale</th><th>Dmg</th><th>Death</th><th>avg K/D/A</th>
+        </tr></thead>
+        <tbody><tr>
+          <td class="class-cell">${rows[0].Class}</td>
+          <td style="color:var(--gold);font-weight:700">${n}</td>
+          <td>${fmtA(avg('Kill'))}</td><td>${fmtA(avg('Assist'))}</td>
+          <td>${fmtA(avg('Heal'))}</td><td>${fmtA(avg('Tank'))}</td>
+          <td>${fmtA(avg('Tower'))}</td><td>${fmtA(avg('Revive'))}</td>
+          <td>${fmtA(avg('Morale'))}</td><td>${fmtA(avg('Dmg'))}</td>
+          <td>${fmtA(avg('Death'))}</td>
+          <td class="kda-value">${avgKDA.toFixed(2)}</td>
+        </tr></tbody>
+      </table>
+    </div>`;
+
+    html += `<div class="section-title">📋 MATCH HISTORY</div>
+    <div class="player-card">
+      <table>
+        <thead><tr>
+          <th>War</th><th>Kill</th><th>Assist</th><th>Heal</th><th>Tank</th><th>Tower</th><th>Revive</th><th>Morale</th><th>Dmg</th><th>Death</th>
+        </tr></thead>
+        <tbody>`;
+    rows.forEach((r) => {
+      html += `<tr>
+        <td style="color:var(--gold);font-weight:700">${r.War}</td>
+        <td>${fmt(r.Kill)}</td><td>${fmt(r.Assist)}</td>
+        <td>${fmt(r.Heal||0)}</td><td>${fmt(r.Tank)}</td>
+        <td>${fmtTower(r.Tower)}</td><td>${fmt(r.Revive)}</td>
+        <td>${fmt(r.Morale||0)}</td><td>${fmtDmg(r.Dmg, r)}</td>
+        <td>${fmt(r.Death)}</td>
+      </tr>`;
+    });
+    html += `</tbody></table></div>`;
+    sec.innerHTML = html;
+
+  } else {
+    // Show leaderboard table
+    const bestByPlayer = {};
+    data.forEach(r => {
+      const k = parseFloat(kda(r));
+      if (!bestByPlayer[r.Player] || k > parseFloat(kda(bestByPlayer[r.Player]))) {
+        bestByPlayer[r.Player] = r;
+      }
+    });
+
+    const sorted = Object.values(bestByPlayer)
+      .sort((a,b) => parseFloat(kda(b)) - parseFloat(kda(a)));
+    let html = `<div class="section-title">📊 LEADERBOARD — ${war === 'ALL' ? 'ALL WARS' : war}${classSel.value !== 'ALL' ? ' · ' + classSel.value : ''}</div>
+    <div class="player-card">
+      <table>
+        <thead><tr>
+          <th>#</th><th style="text-align:left;padding-left:14px">Player</th><th>Class</th><th>Best Match</th><th>Kill</th><th>Assist</th><th>Heal</th><th>Tank</th><th>Tower</th><th>Revive</th><th>Morale</th><th>Dmg</th><th>Death</th><th>K/D/A</th>
+        </tr></thead>
+        <tbody>`;
+    sorted.forEach((r, i) => {
+      const rankColor = i===0?'var(--gold-light)':i===1?'#b0b0b0':i===2?'#cd7f32':'#666';
+      html += `<tr>
+        <td style="color:${rankColor};font-weight:700">${i+1}</td>
+        <td style="text-align:left;padding-left:14px;color:var(--text)">${r.Player}</td>
+        <td class="class-cell">${r.Class}</td>
+        <td style="color:var(--cyan);font-size:0.82rem;font-weight:700">${r.War}</td>
+        <td>${fmt(r.Kill)}</td><td>${fmt(r.Assist)}</td>
+        <td>${fmt(r.Heal||0)}</td><td>${fmt(r.Tank)}</td>
+        <td>${fmtTower(r.Tower)}</td><td>${fmt(r.Revive)}</td>
+        <td>${fmt(r.Morale||0)}</td><td>${fmtDmg(r.Dmg, r)}</td>
+        <td>${fmt(r.Death)}</td>
+        <td class="kda-value">${kda(r)}</td>
+      </tr>`;
+    });
+    html += `</tbody></table></div>`;
+    sec.innerHTML = html;
+  }
+}
+
+// MVP uses ALL data (all wars), find best single-match record per player, then top 3
+function rankVal(r, field) {
+  const raw = r[field] || 0;
+  if (field === 'Dmg' && !NO_K_PLAYERS.includes(r.Player)) {
+    return raw * 1000; // ทุกคนมีหน่วยเป็น K ยกเว้น 3 คนนี้ ใช้ค่าจริงตอนจัดอันดับ
+  }
+  return raw;
+}
+function top3AllTime(field) {
+  const bestByPlayer = {};
+  RAW.forEach(r => {
+    const raw_val = r[field] || 0;
+    const val = rankVal(r, field);
+    if (!bestByPlayer[r.Player] || val > bestByPlayer[r.Player].val) {
+      bestByPlayer[r.Player] = { Player: r.Player, War: r.War, Class: r.Class, val, raw_val, field };
+    }
+  });
+  return Object.values(bestByPlayer)
+    .sort((a, b) => b.val - a.val)
+    .slice(0, 3);
+}
+
+function mvpCard(cls, title, rows, field) {
+  const medals = ['🥇','🥈','🥉'];
+  let r = `<div class="mvp-card mvp-${cls}">
+    <div class="mvp-card-title">${title}</div>
+    <div class="mvp-rows">`;
+  rows.forEach((p, i) => {
+    r += `<div class="mvp-row">
+      <span><span class="rank">${medals[i]}</span>${p.Player} <span style="color:#555;font-size:0.75rem">(${p.War})</span></span>
+      <span class="val">${p.field === 'Dmg' ? fmtDmg(p.raw_val, p) : p.field === 'Tower' ? fmtTower(p.val) : fmt(p.val)}</span>
+    </div>`;
+  });
+  r += `</div></div>`;
+  return r;
+}
+
+function renderMVP(data) {
+  const grid = document.getElementById('mvpGrid');
+  grid.innerHTML =
+    mvpCard('kill',   '⚔ TOP KILL',   top3AllTime('Kill'),   'Kill') +
+    mvpCard('heal',   '💚 TOP HEAL',   top3AllTime('Heal'),   'Heal') +
+    mvpCard('tower',  '🏰 TOP TOWER',  top3AllTime('Tower'),  'Tower') +
+    mvpCard('tank',   '🛡 TOP TANK',   top3AllTime('Tank'),   'Tank') +
+    mvpCard('dmg',    '💥 TOP DMG',    top3AllTime('Dmg'),    'Dmg') +
+    mvpCard('assist', '🤝 TOP ASSIST', top3AllTime('Assist'), 'Assist');
+}
+
+renderAll();
+</script>
+</body>
+</html>

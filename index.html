@@ -265,6 +265,65 @@
   }
   .stat-chip .lbl { color: #888; font-size: 0.75rem; }
   .stat-chip .val { color: var(--gold-light); }
+
+  /* TABS */
+  .main-tabs {
+    display: flex;
+    gap: 0;
+    background: var(--dark2);
+    border-bottom: 2px solid var(--gold-dark);
+    padding: 0 24px;
+  }
+  .main-tab {
+    font-family: 'Cinzel', serif;
+    font-size: 0.82rem;
+    letter-spacing: 0.1em;
+    padding: 12px 22px;
+    cursor: pointer;
+    color: #666;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    background: none;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+    transition: all 0.15s;
+  }
+  .main-tab:hover { color: var(--text); }
+  .main-tab.active { color: var(--gold-light); border-bottom-color: var(--gold); }
+
+  /* COMPARE */
+  .compare-selects { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; align-items: center; }
+  .compare-selects select { min-width: 160px; }
+  .compare-vs { font-family: 'Cinzel', serif; color: var(--gold); font-size: 1.1rem; font-weight: 900; }
+  .compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  .compare-card { background: var(--dark3); border: 1px solid #2a2200; padding: 14px; }
+  .compare-name { font-family: 'Cinzel', serif; font-size: 1rem; color: var(--gold-light); font-weight: 900; margin-bottom: 4px; }
+  .compare-class { font-size: 0.78rem; color: #888; margin-bottom: 12px; }
+  .compare-stat-row { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #2a2000; font-size: 0.88rem; font-weight: 600; }
+  .compare-stat-row:last-child { border-bottom: none; }
+  .compare-stat-row .lbl { color: #888; }
+  .compare-stat-row .val { color: var(--text); }
+  .compare-stat-row .val.win { color: var(--green); }
+  .compare-bar-wrap { margin-top: 16px; }
+  .compare-bar-label { font-size: 0.75rem; color: #888; margin-bottom: 4px; }
+  .compare-bar-dual { display: flex; height: 18px; background: #111; border: 1px solid #2a2000; overflow: hidden; margin-bottom: 8px; }
+  .compare-bar-a { background: var(--cyan); height: 100%; transition: width 0.4s; }
+  .compare-bar-b { background: var(--pink); height: 100%; transition: width 0.4s; }
+  .compare-legend { display: flex; gap: 16px; font-size: 0.75rem; margin-top: 10px; }
+  .compare-legend span { display: flex; align-items: center; gap: 5px; }
+  .compare-legend .dot { width: 10px; height: 10px; border-radius: 50%; }
+
+  /* TREND */
+  .trend-wrap {
+    background: var(--dark2);
+    border: 1px solid var(--gold-dark);
+    border-top: 2px solid var(--gold);
+    margin-bottom: 20px;
+    padding: 16px 20px;
+    overflow-x: auto;
+  }
+  canvas.trend-canvas { display: block; }
 </style>
 </head>
 <body>
@@ -294,12 +353,33 @@
   </div>
 </div>
 
+<div class="main-tabs">
+  <button class="main-tab active" id="tabStats" onclick="switchTab('stats')">⚔ STATS</button>
+  <button class="main-tab" id="tabCompare" onclick="switchTab('compare')">⚔ HEAD-TO-HEAD</button>
+</div>
+
 <div class="main">
-  <div id="playerSection"></div>
-  <div class="gold-divider"></div>
-  <div class="mvp-section">
-    <div class="mvp-title">🏆 MVP BOARD</div>
-    <div class="mvp-grid" id="mvpGrid"></div>
+  <!-- STATS TAB -->
+  <div id="panelStats">
+    <div id="playerSection"></div>
+    <div class="gold-divider"></div>
+    <div class="mvp-section">
+      <div class="mvp-title">🏆 MVP BOARD</div>
+      <div class="mvp-grid" id="mvpGrid"></div>
+    </div>
+  </div>
+
+  <!-- COMPARE TAB -->
+  <div id="panelCompare" style="display:none">
+    <div class="section-title">⚔ HEAD-TO-HEAD</div>
+    <div class="player-card" style="padding:20px">
+      <div class="compare-selects">
+        <select id="cmpA" onchange="renderCompare()"><option value="">— Player A —</option></select>
+        <span class="compare-vs">VS</span>
+        <select id="cmpB" onchange="renderCompare()"><option value="">— Player B —</option></select>
+      </div>
+      <div id="compareResult"><div class="empty-state">เลือก Player สองคนเพื่อเปรียบเทียบ</div></div>
+    </div>
   </div>
 </div>
 
@@ -482,7 +562,59 @@ function renderPlayer(data) {
       </tr>`;
     });
     html += `</tbody></table></div>`;
+
+    // เพิ่ม trend section ถ้ามีมากกว่า 1 war
+    if (rows.length >= 2) {
+      html += `<div class="section-title">📈 KDA TREND</div>
+      <div class="trend-wrap"><canvas id="trendCanvas" class="trend-canvas" height="200"></canvas></div>`;
+    }
+
     sec.innerHTML = html;
+
+    // วาด trend chart หลัง DOM อัพเดท
+    if (rows.length >= 2) {
+      const canvas = document.getElementById('trendCanvas');
+      const ctx = canvas.getContext('2d');
+      const W = Math.max(canvas.parentElement.clientWidth - 40, 300);
+      canvas.width = W; canvas.height = 200;
+      const kdaVals = rows.map(r => parseFloat(kda(r)));
+      const minV = Math.min(...kdaVals) * 0.85;
+      const maxV = Math.max(...kdaVals) * 1.15;
+      const pad = { l: 50, r: 20, t: 20, b: 40 };
+      const cW = W - pad.l - pad.r;
+      const cH = 200 - pad.t - pad.b;
+      const xPos = (i) => pad.l + (rows.length === 1 ? cW/2 : i / (rows.length-1) * cW);
+      const yPos = (v) => pad.t + (1 - (v - minV) / (maxV - minV)) * cH;
+      // Grid
+      ctx.strokeStyle = '#2a2200'; ctx.lineWidth = 1;
+      for (let i = 0; i <= 4; i++) {
+        const y = pad.t + (i/4) * cH;
+        ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(W - pad.r, y); ctx.stroke();
+        const val = (maxV - (maxV-minV)*(i/4)).toFixed(2);
+        ctx.fillStyle = '#666'; ctx.font = '10px Rajdhani,sans-serif'; ctx.textAlign = 'right';
+        ctx.fillText(val, pad.l - 6, y + 4);
+      }
+      // Fill under line
+      ctx.beginPath();
+      rows.forEach((r,i) => { i===0 ? ctx.moveTo(xPos(i), yPos(kdaVals[i])) : ctx.lineTo(xPos(i), yPos(kdaVals[i])); });
+      ctx.lineTo(xPos(rows.length-1), pad.t+cH); ctx.lineTo(xPos(0), pad.t+cH); ctx.closePath();
+      ctx.fillStyle = 'rgba(201,162,39,0.08)'; ctx.fill();
+      // Line
+      ctx.beginPath(); ctx.strokeStyle = '#f0c94d'; ctx.lineWidth = 2.5;
+      rows.forEach((r,i) => { i===0 ? ctx.moveTo(xPos(i), yPos(kdaVals[i])) : ctx.lineTo(xPos(i), yPos(kdaVals[i])); });
+      ctx.stroke();
+      // Dots & labels
+      rows.forEach((r,i) => {
+        const x = xPos(i), y = yPos(kdaVals[i]);
+        ctx.beginPath(); ctx.arc(x, y, 5, 0, Math.PI*2);
+        ctx.fillStyle = '#f0c94d'; ctx.fill();
+        ctx.strokeStyle = '#000'; ctx.lineWidth = 1.5; ctx.stroke();
+        ctx.fillStyle = '#f0c94d'; ctx.font = 'bold 11px Rajdhani,sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText(kdaVals[i].toFixed(2), x, y - 10);
+        ctx.fillStyle = '#888'; ctx.font = '10px Rajdhani,sans-serif';
+        ctx.fillText(r.War, x, 200 - pad.b + 14);
+      });
+    }
 
   } else {
     // Show leaderboard table
@@ -572,6 +704,96 @@ function renderMVP(data) {
 }
 
 renderAll();
+
+// ─── TAB SWITCHING ────────────────────────────────────────────────────────
+function switchTab(tab) {
+  document.getElementById('panelStats').style.display = tab === 'stats' ? '' : 'none';
+  document.getElementById('panelCompare').style.display = tab === 'compare' ? '' : 'none';
+  document.getElementById('tabStats').className = 'main-tab' + (tab === 'stats' ? ' active' : '');
+  document.getElementById('tabCompare').className = 'main-tab' + (tab === 'compare' ? ' active' : '');
+}
+
+// ─── POPULATE COMPARE DROPDOWNS ───────────────────────────────────────────
+const cmpA = document.getElementById('cmpA');
+const cmpB = document.getElementById('cmpB');
+allPlayers.forEach(p => {
+  [cmpA, cmpB].forEach(sel => {
+    const o = document.createElement('option'); o.value = p; o.textContent = p; sel.appendChild(o);
+  });
+});
+
+// ─── HEAD-TO-HEAD COMPARE ─────────────────────────────────────────────────
+function renderCompare() {
+  const pa = cmpA.value;
+  const pb = cmpB.value;
+  const el = document.getElementById('compareResult');
+  if (!pa || !pb || pa === pb) {
+    el.innerHTML = '<div class="empty-state">เลือก Player สองคนที่ต่างกันเพื่อเปรียบเทียบ</div>';
+    return;
+  }
+  const rowsA = RAW.filter(r => r.Player === pa);
+  const rowsB = RAW.filter(r => r.Player === pb);
+  const avgA = (f) => f === 'kda' ? rowsA.reduce((s,r)=>s+parseFloat(kda(r)),0)/rowsA.length
+    : rowsA.reduce((s,r)=>s+(r[f]||0),0)/rowsA.length;
+  const avgB = (f) => f === 'kda' ? rowsB.reduce((s,r)=>s+parseFloat(kda(r)),0)/rowsB.length
+    : rowsB.reduce((s,r)=>s+(r[f]||0),0)/rowsB.length;
+  const FIELDS = [
+    {f:'kda',   l:'KDA',    fmt:v=>v.toFixed(2), hw:true},
+    {f:'Kill',  l:'Kill',   fmt:v=>v.toFixed(1), hw:true},
+    {f:'Assist',l:'Assist', fmt:v=>v.toFixed(1), hw:true},
+    {f:'Dmg',   l:'Dmg',    fmt:v=>v.toFixed(1), hw:true},
+    {f:'Tank',  l:'Tank',   fmt:v=>v.toFixed(1), hw:true},
+    {f:'Tower', l:'Tower',  fmt:v=>v.toFixed(1), hw:true},
+    {f:'Heal',  l:'Heal',   fmt:v=>v.toFixed(1), hw:true},
+    {f:'Revive',l:'Revive', fmt:v=>v.toFixed(1), hw:true},
+    {f:'Morale',l:'Morale', fmt:v=>v.toFixed(1), hw:true},
+    {f:'Death', l:'Death',  fmt:v=>v.toFixed(1), hw:false},
+  ];
+  const barsHtml = FIELDS.map(({f,l,fmt,hw}) => {
+    const va = avgA(f), vb = avgB(f);
+    const total = va + vb || 1;
+    const pctA = (va/total*100).toFixed(1);
+    const pctB = (vb/total*100).toFixed(1);
+    const aWin = hw ? va > vb : va < vb;
+    const bWin = hw ? vb > va : vb < va;
+    return `<div class="compare-bar-label">${l} &nbsp;<span style="color:var(--cyan)">${fmt(va)}</span> vs <span style="color:var(--pink)">${fmt(vb)}</span></div>
+    <div class="compare-bar-dual">
+      <div class="compare-bar-a" style="width:${pctA}%;opacity:${aWin?1:0.4}"></div>
+      <div class="compare-bar-b" style="width:${pctB}%;opacity:${bWin?1:0.4}"></div>
+    </div>`;
+  }).join('');
+  const classA = rowsA[0]?.Class||'', classB = rowsB[0]?.Class||'';
+  const kdaA = avgA('kda'), kdaB = avgB('kda');
+  el.innerHTML = `
+    <div class="compare-grid">
+      <div class="compare-card" style="border-top:2px solid var(--cyan)">
+        <div class="compare-name" style="color:var(--cyan)">${pa}</div>
+        <div class="compare-class">${classA} · ${rowsA.length} Matches</div>
+        <div class="compare-stat-row"><span class="lbl">Avg KDA</span><span class="val ${kdaA>=kdaB?'win':''}">${kdaA.toFixed(2)}</span></div>
+        <div class="compare-stat-row"><span class="lbl">Avg Kill</span><span class="val ${avgA('Kill')>=avgB('Kill')?'win':''}">${avgA('Kill').toFixed(1)}</span></div>
+        <div class="compare-stat-row"><span class="lbl">Avg Death</span><span class="val ${avgA('Death')<=avgB('Death')?'win':''}">${avgA('Death').toFixed(1)}</span></div>
+        <div class="compare-stat-row"><span class="lbl">Avg Dmg</span><span class="val ${avgA('Dmg')>=avgB('Dmg')?'win':''}">${avgA('Dmg').toFixed(1)}</span></div>
+        <div class="compare-stat-row"><span class="lbl">Avg Tank</span><span class="val ${avgA('Tank')>=avgB('Tank')?'win':''}">${avgA('Tank').toFixed(1)}</span></div>
+      </div>
+      <div class="compare-card" style="border-top:2px solid var(--pink)">
+        <div class="compare-name" style="color:var(--pink)">${pb}</div>
+        <div class="compare-class">${classB} · ${rowsB.length} Matches</div>
+        <div class="compare-stat-row"><span class="lbl">Avg KDA</span><span class="val ${kdaB>=kdaA?'win':''}">${kdaB.toFixed(2)}</span></div>
+        <div class="compare-stat-row"><span class="lbl">Avg Kill</span><span class="val ${avgB('Kill')>=avgA('Kill')?'win':''}">${avgB('Kill').toFixed(1)}</span></div>
+        <div class="compare-stat-row"><span class="lbl">Avg Death</span><span class="val ${avgB('Death')<=avgA('Death')?'win':''}">${avgB('Death').toFixed(1)}</span></div>
+        <div class="compare-stat-row"><span class="lbl">Avg Dmg</span><span class="val ${avgB('Dmg')>=avgA('Dmg')?'win':''}">${avgB('Dmg').toFixed(1)}</span></div>
+        <div class="compare-stat-row"><span class="lbl">Avg Tank</span><span class="val ${avgB('Tank')>=avgA('Tank')?'win':''}">${avgB('Tank').toFixed(1)}</span></div>
+      </div>
+    </div>
+    <div class="compare-bar-wrap">
+      ${barsHtml}
+      <div class="compare-legend">
+        <span><span class="dot" style="background:var(--cyan)"></span>${pa}</span>
+        <span><span class="dot" style="background:var(--pink)"></span>${pb}</span>
+      </div>
+    </div>`;
+}
+renderCompare();
 </script>
 </body>
 </html>

@@ -351,6 +351,21 @@
       <option value="ALL">— ALL CLASSES —</option>
     </select>
   </div>
+  <div class="control-group">
+    <span class="control-label">SORT BY</span>
+    <select id="sortSelect" onchange="renderAll()">
+      <option value="kda">KDA</option>
+      <option value="Kill">Kill</option>
+      <option value="Assist">Assist</option>
+      <option value="Dmg">Dmg</option>
+      <option value="Tank">Tank</option>
+      <option value="Tower">Tower</option>
+      <option value="Heal">Heal</option>
+      <option value="Revive">Revive</option>
+      <option value="Morale">Morale</option>
+      <option value="Death">Death (น้อยสุด)</option>
+    </select>
+  </div>
 </div>
 
 <div class="main-tabs">
@@ -618,17 +633,28 @@ function renderPlayer(data) {
 
   } else {
     // Show leaderboard table
+    const sortBy = document.getElementById('sortSelect').value;
     const bestByPlayer = {};
     data.forEach(r => {
-      const k = parseFloat(kda(r));
-      if (!bestByPlayer[r.Player] || k > parseFloat(kda(bestByPlayer[r.Player]))) {
-        bestByPlayer[r.Player] = r;
+      let val;
+      if (sortBy === 'kda') val = parseFloat(kda(r));
+      else if (sortBy === 'Death') val = -(r[sortBy] || 0); // น้อยสุด = ดีสุด
+      else val = rankVal(r, sortBy);
+
+      if (!bestByPlayer[r.Player] || val > bestByPlayer[r.Player]._sortVal) {
+        bestByPlayer[r.Player] = { ...r, _sortVal: val };
       }
     });
 
     const sorted = Object.values(bestByPlayer)
-      .sort((a,b) => parseFloat(kda(b)) - parseFloat(kda(a)));
-    let html = `<div class="section-title">📊 LEADERBOARD — ${war === 'ALL' ? 'ALL WARS' : war}${classSel.value !== 'ALL' ? ' · ' + classSel.value : ''}</div>
+      .sort((a,b) => b._sortVal - a._sortVal);
+
+    const sortLabels = {
+      kda:'KDA', Kill:'Kill', Assist:'Assist', Dmg:'Dmg',
+      Tank:'Tank', Tower:'Tower', Heal:'Heal', Revive:'Revive',
+      Morale:'Morale', Death:'Death (น้อยสุด)'
+    };
+    let html = `<div class="section-title">📊 LEADERBOARD — ${war === 'ALL' ? 'ALL WARS' : war}${classSel.value !== 'ALL' ? ' · ' + classSel.value : ''} · ${sortLabels[sortBy]}</div>
     <div class="player-card">
       <table>
         <thead><tr>

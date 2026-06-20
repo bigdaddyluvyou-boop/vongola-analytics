@@ -553,7 +553,11 @@
   .icon-btn:hover { background: var(--gold-dark); color: #fff; }
   .icon-btn.danger:hover { background: #6e1c22; border-color: #6e1c22; }
 
-  .zone-body { padding: 16px; display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 14px; }
+  .zone-body { padding: 16px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; }
+  @media (max-width: 1300px) { .zone-body { grid-template-columns: repeat(4, 1fr); } }
+  @media (max-width: 1050px) { .zone-body { grid-template-columns: repeat(3, 1fr); } }
+  @media (max-width: 700px)  { .zone-body { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 480px)  { .zone-body { grid-template-columns: 1fr; } }
 
   .team-card { background: var(--dark3); border: 1px solid #3a3320; border-radius: 2px; overflow: hidden; }
   .team-head {

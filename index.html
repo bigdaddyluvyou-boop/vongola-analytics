@@ -1041,11 +1041,16 @@ function renderGuildOverview() {
   html += `</ol></div>`;
 
   // ===== 4. ROLE-BASED INSIGHT =====
+  const healVal = (r) => {
+    const raw = r.Heal || 0;
+    if (r.War === 'Holy Partizan' && !HEAL_NO_K_HOLY_PARTIZAN.includes(r.Player)) return raw * 1000;
+    return raw;
+  };
   const supportBest = {};
   data.forEach(r => {
-    const score = (r.Heal||0) + (r.Revive||0)*10;
+    const score = healVal(r) + (r.Revive||0)*10;
     if (score > 0 && (!supportBest[r.Player] || score > supportBest[r.Player].score)) {
-      supportBest[r.Player] = { player: r.Player, war: r.War, score };
+      supportBest[r.Player] = { player: r.Player, war: r.War, score, r };
     }
   });
   const supportScores = Object.values(supportBest).sort((a,b) => b.score - a.score).slice(0,5);
@@ -1060,7 +1065,11 @@ function renderGuildOverview() {
   const dmgEff = Object.values(dmgEffBest).sort((a,b) => b.eff - a.eff).slice(0,5);
 
   html += `<div class="role-card"><div class="role-title">💚 TOP SUPPORT</div><ol>`;
-  supportScores.forEach(s => { html += `<li>${s.player} <span style="color:#555;font-size:0.75rem">(${s.war})</span> — <b style="color:var(--cyan)">${fmt(s.score.toFixed(0))}</b></li>`; });
+  supportScores.forEach(s => {
+    const healDisp = fmtHeal(s.r.Heal||0, s.r);
+    const revDisp = (s.r.Revive||0) > 0 ? ` <span style="color:#888;font-size:0.75rem">+${s.r.Revive} revive</span>` : '';
+    html += `<li>${s.player} <span style="color:#555;font-size:0.75rem">(${s.war})</span> — <b style="color:var(--cyan)">${healDisp}</b>${revDisp}</li>`;
+  });
   if (!supportScores.length) html += `<li style="color:#888">ไม่มีข้อมูล</li>`;
   html += `</ol></div>`;
 

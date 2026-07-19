@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>⚔ VONGOLA WAR ANALYTICS ⚔</title>
+<title>⚔ PSYCHOLPATH WAR ANALYTICS ⚔</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Rajdhani:wght@400;600;700&display=swap');
 
@@ -660,7 +660,7 @@
 <body>
 
 <div class="header">
-  <h1><span>⚔</span> VONGOLA WAR ANALYTICS <span>⚔</span></h1>
+  <h1><span>⚔</span> PSYCHOLPATH WAR ANALYTICS <span>⚔</span></h1>
 </div>
 
 <div class="controls">
@@ -1555,7 +1555,7 @@ const CLASS_COLOR = {
 };
 const CLASS_ORDER = ['Numina', 'Celestune', 'Nightwalker', 'Bloodstorm', 'Ironclad', 'Dragonsvelte', 'Sylph'];
 
-const TB_STORAGE_KEY = 'vongola_warboard_v1';
+const TB_STORAGE_KEY = 'psycholpath_warboard_v1';
 const SLOT_COUNT = 6; // per team
 
 let tbState = { zones: [] }; // { id, name, teams: [ {id, name, slots: [playerName|null, ...]} ] }
@@ -1847,7 +1847,7 @@ function initTeamBuilder() {
     const blob = new Blob([JSON.stringify(tbState, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url; a.download = 'vongola_warboard.json'; a.click();
+    a.href = url; a.download = 'psycholpath_warboard.json'; a.click();
     URL.revokeObjectURL(url);
     showToast('ส่งออกไฟล์แล้ว');
   });
